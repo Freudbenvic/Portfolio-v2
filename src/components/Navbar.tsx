@@ -26,6 +26,17 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // mobile menu folds back as soon as the page is scrolled
+  useEffect(() => {
+    if (!open) return;
+    const startY = window.scrollY;
+    const onScroll = () => {
+      if (Math.abs(window.scrollY - startY) > 8) setOpen(false);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [open]);
+
   useEffect(() => {
     const sections = links
       .map((link) => document.getElementById(link.key))
@@ -119,10 +130,10 @@ export default function Navbar() {
           <a
             href="/cv-freud-benvic.pdf"
             download
-            aria-label={t.nav.downloadCV}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-violet/40 bg-violet/10 text-violet-light"
+            className="flex items-center gap-1.5 rounded-full border border-violet/40 bg-violet/10 px-3 py-1.5 text-xs font-medium text-violet-light"
           >
-            <Download size={15} />
+            {t.nav.downloadCV}
+            <Download size={14} />
           </a>
           <button className="text-white" onClick={() => setOpen((o) => !o)} aria-label="Menu">
             {open ? <X size={22} /> : <Menu size={22} />}

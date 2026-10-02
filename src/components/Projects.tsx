@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, ArrowLeft, ExternalLink } from "lucide-react";
 import { projects } from "../data/content";
 import { useLanguage } from "../context/LanguageContext";
@@ -24,36 +24,101 @@ const imageMap: Record<string, string> = {
   "portfolio-v1": portfolioV1Img,
 };
 
-const AUTOPLAY_MS = 6000;
-const SWIPE_THRESHOLD = 40;
-
-// circular offset of card i relative to the active one, e.g. -2 -1 0 1 2
-function getOffset(i: number, active: number, total: number) {
-  let d = (((i - active) % total) + total) % total;
-  if (d > total / 2) d -= total;
-  return d;
-}
-
 export default function Projects() {
   const { t } = useLanguage();
-  const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const touchStartX = useRef<number | null>(null);
-
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<(HTMLElement | null)[]>([]);
+  const drag = useRef({ active: false, startX: 0, startScroll: 0, moved: false });
+  const [active, setActive] = useState(0);
   const total = projects.length;
-  const goTo = (i: number) => setIndex(((i % total) + total) % total);
+
+  const step = () => {
+    const [a, b] = cardRefs.current;
+    return a && b ? b.offsetLeft - a.offsetLeft : 1;
+  };
+
+  // coverflow look driven by the scroll position: the closer a card is to the center, the bigger and brighter it gets
+  const update = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const center = el.scrollLeft + el.clientWidth / 2;
+    const s = step();
+    let nearest = 0;
+    let best = Infinity;
+
+    cardRefs.current.forEach((card, i) => {
+      if (!card) return;
+      const d = (card.offsetLeft + card.offsetWidth / 2 - center) / s;
+      const abs = Math.min(Math.abs(d), 2);
+      const rotate = Math.max(-34, Math.min(34, -d * 22));
+      card.style.transform = `perspective(1000px) rotateY(${rotate}deg) scale(${1 - abs * 0.1})`;
+      card.style.opacity = String(Math.max(0.35, 1 - abs * 0.3));
+      card.style.zIndex = String(10 - Math.round(abs));
+      card.dataset.active = abs < 0.5 ? "1" : "0";
+      if (Math.abs(d) < best) {
+        best = Math.abs(d);
+        nearest = i;
+      }
+    });
+    setActive((prev) => (prev === nearest ? prev : nearest));
+  }, []);
 
   useEffect(() => {
-    if (paused) return;
-    const timer = setInterval(() => setIndex((i) => (i + 1) % total), AUTOPLAY_MS);
-    return () => clearInterval(timer);
-  }, [total, index, paused]);
+    const el = scrollerRef.current;
+    if (!el) return;
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(update);
+    };
+    update();
+    el.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [update]);
 
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
-    const delta = e.changedTouches[0].clientX - touchStartX.current;
-    touchStartX.current = null;
-    if (Math.abs(delta) > SWIPE_THRESHOLD) goTo(delta < 0 ? index + 1 : index - 1);
+  const goTo = (i: number) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const clamped = Math.max(0, Math.min(total - 1, i));
+    el.scrollTo({ left: clamped * step(), behavior: "smooth" });
+  };
+
+  // mouse drag (touch and trackpads already scroll natively)
+  const onPointerDown = (e: React.PointerEvent) => {
+    const el = scrollerRef.current;
+    if (!el || e.pointerType !== "mouse" || e.button !== 0) return;
+    drag.current = { active: true, startX: e.clientX, startScroll: el.scrollLeft, moved: false };
+
+    const onMove = (ev: PointerEvent) => {
+      const dx = ev.clientX - drag.current.startX;
+      if (Math.abs(dx) > 5) {
+        if (!drag.current.moved) {
+          drag.current.moved = true;
+          el.style.scrollSnapType = "none";
+          el.style.cursor = "grabbing";
+        }
+        el.scrollLeft = drag.current.startScroll - dx;
+      }
+    };
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      drag.current.active = false;
+      el.style.cursor = "";
+      if (drag.current.moved) {
+        const target = Math.round(el.scrollLeft / step());
+        el.scrollTo({ left: Math.max(0, Math.min(total - 1, target)) * step(), behavior: "smooth" });
+        setTimeout(() => (el.style.scrollSnapType = ""), 450);
+        setTimeout(() => (drag.current.moved = false), 0);
+      }
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
   };
 
   return (
@@ -79,136 +144,133 @@ export default function Projects() {
             </a>
           </div>
         </Reveal>
-
-        <Reveal delay={100}>
-          <div
-            className="relative mt-10 h-[480px] overflow-hidden"
-            style={{ perspective: "1200px" }}
-            onMouseEnter={() => setPaused(true)}
-            onMouseLeave={() => setPaused(false)}
-            onTouchStart={(e) => (touchStartX.current = e.touches[0].clientX)}
-            onTouchEnd={onTouchEnd}
-          >
-            {projects.map((project, i) => {
-              const d = getOffset(i, index, total);
-              const abs = Math.abs(d);
-              const isCenter = d === 0;
-              const visible = abs <= 2;
-              const sign = Math.sign(d);
-              const shift = abs === 0 ? 0 : abs === 1 ? 68 : 118;
-              const scale = abs === 0 ? 1 : abs === 1 ? 0.86 : 0.74;
-              const opacity = abs === 0 ? 1 : abs === 1 ? 0.6 : 0.3;
-              const img = project.image ? imageMap[project.image] : undefined;
-
-              return (
-                <article
-                  key={project.title}
-                  onClick={() => !isCenter && visible && goTo(i)}
-                  aria-hidden={!isCenter}
-                  className={`absolute left-1/2 top-1/2 flex h-[440px] w-[78%] max-w-[340px] flex-col overflow-hidden rounded-2xl border bg-surface transition-all duration-500 ease-out ${
-                    isCenter
-                      ? "border-violet/40 shadow-2xl shadow-violet/20"
-                      : "cursor-pointer border-white/10 shadow-xl shadow-black/30"
-                  }`}
-                  style={{
-                    transform: `translate(${-50 + sign * shift}%, -50%) rotateY(${-sign * 22}deg) scale(${scale})`,
-                    opacity: visible ? opacity : 0,
-                    zIndex: 10 - abs,
-                    pointerEvents: visible ? "auto" : "none",
-                  }}
-                >
-                  <div className="relative h-44 flex-shrink-0 overflow-hidden">
-                    {img ? (
-                      <img src={img} alt={project.title} className="h-full w-full object-cover" />
-                    ) : (
-                      <div className={`flex h-full items-center justify-center bg-gradient-to-br ${project.gradient}`}>
-                        <span className="px-4 text-center text-xl font-bold text-white/25">{project.title}</span>
-                      </div>
-                    )}
-                    <span className="absolute left-3 top-3 rounded-full border border-violet/30 bg-bg/70 px-2.5 py-0.5 font-display text-xs font-bold text-violet-light backdrop-blur-sm">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-1 flex-col p-5">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="text-lg font-semibold leading-snug text-white">{project.title}</h3>
-                      <div className="flex flex-shrink-0 items-center gap-3">
-                        {project.github && (
-                          <a
-                            href={project.github}
-                            target="_blank"
-                            rel="noreferrer"
-                            aria-label="Voir le code sur GitHub"
-                            tabIndex={isCenter ? 0 : -1}
-                            onClick={(e) => e.stopPropagation()}
-                            className="mt-0.5 text-white/40 transition-colors hover:text-violet-light"
-                          >
-                            <GithubIcon />
-                          </a>
-                        )}
-                        {project.link && (
-                          <a
-                            href={project.link}
-                            target="_blank"
-                            rel="noreferrer"
-                            aria-label="Voir le projet"
-                            tabIndex={isCenter ? 0 : -1}
-                            onClick={(e) => e.stopPropagation()}
-                            className="mt-0.5 text-white/40 transition-colors hover:text-violet-light"
-                          >
-                            <ExternalLink size={16} />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                    <p className="mt-2.5 line-clamp-4 text-sm leading-relaxed text-white/55">{project.description}</p>
-                    <div className="mt-auto flex flex-wrap gap-1.5 border-t border-white/10 pt-4">
-                      {project.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-white/60"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-
-          <div className="mt-6 flex items-center justify-center gap-5">
-            <button
-              onClick={() => goTo(index - 1)}
-              aria-label="Projet précédent"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/60 transition-all hover:border-violet/40 hover:text-violet-light"
-            >
-              <ArrowLeft size={16} />
-            </button>
-            <div className="flex items-center gap-2">
-              {projects.map((p, i) => (
-                <button
-                  key={p.title}
-                  onClick={() => goTo(i)}
-                  aria-label={`Aller au projet ${i + 1}`}
-                  className={`h-1.5 rounded-full transition-all ${
-                    i === index ? "w-6 bg-violet-light" : "w-1.5 bg-white/20 hover:bg-white/40"
-                  }`}
-                />
-              ))}
-            </div>
-            <button
-              onClick={() => goTo(index + 1)}
-              aria-label="Projet suivant"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/60 transition-all hover:border-violet/40 hover:text-violet-light"
-            >
-              <ArrowRight size={16} />
-            </button>
-          </div>
-        </Reveal>
       </div>
+
+      <Reveal delay={100}>
+        <div
+          ref={scrollerRef}
+          role="region"
+          aria-label={t.projects.title}
+          tabIndex={0}
+          onPointerDown={onPointerDown}
+          onDragStart={(e) => e.preventDefault()}
+          onClickCapture={(e) => {
+            if (drag.current.moved) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowRight") goTo(active + 1);
+            if (e.key === "ArrowLeft") goTo(active - 1);
+          }}
+          className="relative mt-8 flex cursor-grab snap-x snap-mandatory gap-4 overflow-x-auto px-[calc(50%-min(39vw,170px))] py-8 outline-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {projects.map((project, i) => {
+            const img = project.image ? imageMap[project.image] : undefined;
+            const isActive = i === active;
+
+            return (
+              <article
+                key={project.title}
+                ref={(node) => {
+                  cardRefs.current[i] = node;
+                }}
+                data-active={i === 0 ? "1" : "0"}
+                onClick={() => !isActive && goTo(i)}
+                className="flex h-[440px] w-[min(78vw,340px)] flex-shrink-0 snap-center select-none flex-col overflow-hidden rounded-2xl border border-white/10 bg-surface shadow-xl shadow-black/30 will-change-transform data-[active=1]:border-violet/40 data-[active=1]:shadow-2xl data-[active=1]:shadow-violet/20"
+              >
+                <div className="relative h-44 flex-shrink-0 overflow-hidden">
+                  {img ? (
+                    <img src={img} alt={project.title} draggable={false} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className={`flex h-full items-center justify-center bg-gradient-to-br ${project.gradient}`}>
+                      <span className="px-4 text-center text-xl font-bold text-white/25">{project.title}</span>
+                    </div>
+                  )}
+                  <span className="absolute left-3 top-3 rounded-full border border-violet/30 bg-bg/70 px-2.5 py-0.5 font-display text-xs font-bold text-violet-light backdrop-blur-sm">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                </div>
+
+                <div className="flex flex-1 flex-col p-5">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="text-lg font-semibold leading-snug text-white">{project.title}</h3>
+                    <div className="flex flex-shrink-0 items-center gap-3">
+                      {project.github && (
+                        <a
+                          href={project.github}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label="Voir le code sur GitHub"
+                          tabIndex={isActive ? 0 : -1}
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-0.5 text-white/40 transition-colors hover:text-violet-light"
+                        >
+                          <GithubIcon />
+                        </a>
+                      )}
+                      {project.link && (
+                        <a
+                          href={project.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label="Voir le projet"
+                          tabIndex={isActive ? 0 : -1}
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-0.5 text-white/40 transition-colors hover:text-violet-light"
+                        >
+                          <ExternalLink size={16} />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <p className="mt-2.5 line-clamp-4 text-sm leading-relaxed text-white/55">{project.description}</p>
+                  <div className="mt-auto flex flex-wrap gap-1.5 border-t border-white/10 pt-4">
+                    {project.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[11px] text-white/60"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="mt-2 flex items-center justify-center gap-5">
+          <button
+            onClick={() => goTo(active - 1)}
+            aria-label="Projet précédent"
+            className="hidden h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/50 transition-all hover:border-violet/40 hover:text-violet-light sm:flex"
+          >
+            <ArrowLeft size={15} />
+          </button>
+          <div className="flex items-center gap-2">
+            {projects.map((p, i) => (
+              <button
+                key={p.title}
+                onClick={() => goTo(i)}
+                aria-label={`Aller au projet ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all ${
+                  i === active ? "w-6 bg-violet-light" : "w-1.5 bg-white/20 hover:bg-white/40"
+                }`}
+              />
+            ))}
+          </div>
+          <button
+            onClick={() => goTo(active + 1)}
+            aria-label="Projet suivant"
+            className="hidden h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/50 transition-all hover:border-violet/40 hover:text-violet-light sm:flex"
+          >
+            <ArrowRight size={15} />
+          </button>
+        </div>
+      </Reveal>
     </section>
   );
 }

@@ -105,7 +105,7 @@ export default function Skills() {
                 aria-pressed={filter === cat}
                 className={pillClass(filter === cat)}
               >
-                {String(i + 1).padStart(2, "0")} — {categoryLabels[cat]}
+                {String(i + 1).padStart(2, "0")} - {categoryLabels[cat]}
               </button>
             ))}
           </div>

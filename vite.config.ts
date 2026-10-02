@@ -10,7 +10,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Freud Benvic Bossou — Portfolio',
+        name: 'Freud Benvic Bossou - Portfolio',
         short_name: 'Freud Bossou',
         description: 'Portfolio de Freud Benvic Bossou, Développeur Full-Stack (React, Django, Flutter).',
         theme_color: '#0a0a0f',
@@ -39,6 +39,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,jpg,jpeg,svg,pdf}'],
+        // never let the service worker answer API calls with index.html
+        navigateFallbackDenylist: [/^\/api\//],
       },
     }),
   ],

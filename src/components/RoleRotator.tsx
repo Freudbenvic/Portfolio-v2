@@ -36,15 +36,25 @@ export default function RoleRotator({ words, letterDelayMs = 45, holdMs = 1600 }
   return (
     <span className="inline-block min-h-[1.2em] text-violet-light">
       {visible &&
-        word.split("").map((ch, i) => (
-          <span
-            key={`${index}-${i}`}
-            className="letter-in inline-block"
-            style={{ animationDelay: `${i * letterDelayMs}ms` }}
-          >
-            {ch === " " ? "\u00A0" : ch}
-          </span>
-        ))}
+        word.split(" ").map((part, wi, parts) => {
+          const offset = parts.slice(0, wi).reduce((n, w) => n + w.length + 1, 0);
+          return (
+            <span key={`${index}-w${wi}`}>
+              <span className="inline-block whitespace-nowrap">
+                {part.split("").map((ch, ci) => (
+                  <span
+                    key={`${index}-${wi}-${ci}`}
+                    className="letter-in inline-block"
+                    style={{ animationDelay: `${(offset + ci) * letterDelayMs}ms` }}
+                  >
+                    {ch}
+                  </span>
+                ))}
+              </span>
+              {wi < parts.length - 1 && " "}
+            </span>
+          );
+        })}
     </span>
   );
 }

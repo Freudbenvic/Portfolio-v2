@@ -12,7 +12,7 @@ export const projects: Project[] = [
   {
     title: "Easy Work",
     description:
-      "Plateforme SaaS d'édition et de transformation d'images par IA : suppression d'arrière-plan, amélioration de photo, restauration, génération d'images — le tout en quelques clics. Projet en cours de développement.",
+      "Plateforme SaaS d'édition et de transformation d'images par IA : suppression d'arrière-plan, amélioration de photo, restauration, génération d'images - le tout en quelques clics. Projet en cours de développement.",
     tags: ["React", "Django REST", "PostgreSQL", "IA"],
     gradient: "from-blue-600/30 via-slate-900/20 to-black",
     image: "easywork",
@@ -28,7 +28,7 @@ export const projects: Project[] = [
     github: "https://github.com/Freudbenvic/GERAC-Frontend",
   },
   {
-    title: "Dax — Bot Telegram Intelligent",
+    title: "Dax - Bot Telegram Intelligent",
     description:
       "Bot d'automatisation et de recherche de contenu via l'API Telegram.",
     tags: ["Python", "Telegram API"],
@@ -49,13 +49,13 @@ export const projects: Project[] = [
       "Interface responsive mettant en avant compétences et projets, déployée en production.",
     tags: ["React", "TypeScript", "Tailwind CSS", "Vercel"],
     gradient: "from-fuchsia-600/20 via-slate-900/40 to-black",
-    link: "https://portfolio-sv6g.vercel.app",
+    link: "https://freud-joslin-bossou-porfolio.vercel.app",
     github: "https://github.com/Freudbenvic/portfolio-fb",
   },
   {
     title: "Portfolio (v1)",
     description:
-      "Première version de mon portfolio personnel — l'ancêtre de la version actuelle.",
+      "Première version de mon portfolio personnel - l'ancêtre de la version actuelle.",
     tags: ["HTML", "CSS", "JavaScript", "React"],
     gradient: "from-cyan-600/20 via-slate-900/40 to-black",
     image: "portfolio-v1",
@@ -95,8 +95,8 @@ export const profile = {
   linkedin: "linkedin.com/in/freud-joslin-bossou",
   github: "github.com/Freudbenvic",
   facebook: "https://www.facebook.com/share/1HHNHH1Mc6/",
-  bio: "Jeune diplômé en Informatique de Gestion, je me suis découvert une vraie passion pour le développement dès mes premiers cours d'algorithmique. Durant mes trois années de formation à l'IUT de Parakou, j'ai eu l'occasion de parcourir plusieurs technologies et langages : Java, Python, C++, le développement web, les bases de données, la modélisation UML... un vrai terrain de jeu pour comprendre ce qui me plaisait vraiment.\n\nEntre toutes ces découvertes, je me suis particulièrement familiarisé avec l'écosystème JavaScript et React côté frontend, ainsi qu'avec Django côté backend. D'où ma spécialisation aujourd'hui en développement web et mobile, avec une attention particulière portée à la qualité du code et à l'expérience utilisateur.\n\nMon stage à la Direction Générale du Budget m'a permis de mettre ces compétences à l'épreuve sur un vrai projet d'envergure, GERAC, en apprenant à travailler en équipe sur une plateforme utilisée en conditions réelles. Aujourd'hui, je continue à explorer de nouvelles technologies — Flutter pour le mobile, l'automatisation avec Python — toujours avec la même curiosité qui m'a lancé dans ce domaine.",
-  status: "Stagiaire en Génie Logiciel et Développement — DGB",
+  bio: "Jeune diplômé en Informatique de Gestion, je me suis découvert une vraie passion pour le développement dès mes premiers cours d'algorithmique. Durant mes trois années de formation à l'IUT de Parakou, j'ai eu l'occasion de parcourir plusieurs technologies et langages : Java, Python, C++, le développement web, les bases de données, la modélisation UML... un vrai terrain de jeu pour comprendre ce qui me plaisait vraiment.\n\nEntre toutes ces découvertes, je me suis particulièrement familiarisé avec l'écosystème JavaScript et React côté frontend, ainsi qu'avec Django côté backend. D'où ma spécialisation aujourd'hui en développement web et mobile, avec une attention particulière portée à la qualité du code et à l'expérience utilisateur.\n\nMon stage à la Direction Générale du Budget m'a permis de mettre ces compétences à l'épreuve sur un vrai projet d'envergure, GERAC, en apprenant à travailler en équipe sur une plateforme utilisée en conditions réelles. Aujourd'hui, je continue à explorer de nouvelles technologies - Flutter pour le mobile, l'automatisation avec Python - toujours avec la même curiosité qui m'a lancé dans ce domaine.",
+  status: "Stagiaire en Génie Logiciel et Développement - DGB",
 };
 
 export interface TimelineItem {
@@ -109,8 +109,8 @@ export interface TimelineItem {
 export const education: TimelineItem[] = [
   {
     title: { fr: "Licence Informatique de Gestion", en: "Bachelor's in Business Computing" },
-    org: "IUT — Université de Parakou",
-    period: "Sept. 2023 — Juillet 2026",
+    org: "IUT - Université de Parakou",
+    period: "Sept. 2023 - Juillet 2026",
     bullets: [
       { fr: "Algorithmique, Java, Python, C++, SQL, Réseaux", en: "Algorithms, Java, Python, C++, SQL, Networks" },
     ],
@@ -125,8 +125,8 @@ export const education: TimelineItem[] = [
 export const experience: TimelineItem[] = [
   {
     title: { fr: "Stagiaire en Génie Logiciel et Développement", en: "Software Engineering & Development Intern" },
-    org: "Direction de l'Informatique — Direction Générale du Budget (DGB), Ministère de l'Économie et des Finances, Cotonou",
-    period: "Juin 2026 — Août 2026",
+    org: "Direction de l'Informatique - Direction Générale du Budget (DGB), Ministère de l'Économie et des Finances, Cotonou",
+    period: "Juin 2026 - Août 2026",
     bullets: [
       {
         fr: "Développement de GERAC, plateforme de gestion des recrutements et concours pour le secteur de la santé publique.",
@@ -155,8 +155,8 @@ export const services: Service[] = [
   {
     title: { fr: "Développement Web", en: "Web Development" },
     description: {
-      fr: "Sites et applications web sur-mesure, du frontend au backend — rapides, propres et faciles à maintenir.",
-      en: "Custom websites and web apps, from frontend to backend — fast, clean and easy to maintain.",
+      fr: "Sites et applications web sur-mesure, du frontend au backend - rapides, propres et faciles à maintenir.",
+      en: "Custom websites and web apps, from frontend to backend - fast, clean and easy to maintain.",
     },
     tags: ["React", "TypeScript", "Django REST"],
     icon: "web",

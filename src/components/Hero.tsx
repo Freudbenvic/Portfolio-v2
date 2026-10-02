@@ -2,6 +2,7 @@ import { ArrowRight, MessageCircle } from "lucide-react";
 import { profile } from "../data/content";
 import portrait from "../assets/portrait-full.png";
 import { useLanguage } from "../context/LanguageContext";
+import RoleRotator from "./RoleRotator";
 
 function FacebookIcon() {
   return (
@@ -69,6 +70,10 @@ export default function Hero() {
               {t.hero.titleHighlight}
             </span>
           </h1>
+
+          <p className="mt-4 flex flex-wrap items-center gap-x-2 font-display text-xl font-medium text-white/70 sm:text-2xl">
+            {t.hero.roleTagPrefix} <RoleRotator words={t.hero.roles} />
+          </p>
 
           <p className="mt-6 max-w-md text-white/60">{t.hero.subtitle}</p>
 

@@ -14,8 +14,8 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const greeting =
     lang === "fr"
@@ -27,6 +27,21 @@ export default function ChatWidget() {
       setMessages([{ role: "assistant", content: greeting }]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  // on phones the chat folds back as soon as the page behind it is scrolled
+  // (not while typing: the on-screen keyboard can trigger scroll events)
+  useEffect(() => {
+    if (!open) return;
+    const phone = window.matchMedia("(max-width: 767px)");
+    const startY = window.scrollY;
+    const onScroll = () => {
+      if (!phone.matches) return;
+      if (panelRef.current?.contains(document.activeElement)) return;
+      if (Math.abs(window.scrollY - startY) > 8) setOpen(false);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, [open]);
 
   useEffect(() => {
@@ -41,7 +56,6 @@ export default function ChatWidget() {
     setMessages(next);
     setInput("");
     setLoading(true);
-    setError(false);
 
     try {
       const res = await fetch("/api/chat", {
@@ -53,15 +67,14 @@ export default function ChatWidget() {
       const data = await res.json();
       setMessages((m) => [...m, { role: "assistant", content: data.reply }]);
     } catch {
-      setError(true);
       setMessages((m) => [
         ...m,
         {
           role: "assistant",
           content:
             lang === "fr"
-              ? "Oups, je n'arrive pas à répondre là (le chat a besoin d'être déployé sur Vercel avec une clé API configurée). Contacte Freud directement en attendant !"
-              : "Oops, I can't respond right now (chat needs to be deployed on Vercel with an API key configured). Reach out to Freud directly in the meantime!",
+              ? "Oups, je n'arrive pas à répondre pour le moment. Contacte Freud directement par email ou WhatsApp en attendant !"
+              : "Oops, I can't answer right now. Reach out to Freud directly by email or WhatsApp in the meantime!",
         },
       ]);
     } finally {
@@ -80,7 +93,7 @@ export default function ChatWidget() {
       </button>
 
       {open && (
-        <div className="fixed bottom-24 right-6 z-40 flex h-[28rem] w-[calc(100%-3rem)] max-w-sm flex-col overflow-hidden rounded-2xl border border-white/10 bg-surface shadow-2xl shadow-black/30 sm:right-24">
+        <div ref={panelRef} className="fixed bottom-24 right-6 z-40 flex h-[28rem] w-[calc(100%-3rem)] max-w-sm flex-col overflow-hidden rounded-2xl border border-white/10 bg-surface shadow-2xl shadow-black/30 sm:right-24">
           <div className="flex items-center gap-3 border-b border-white/10 bg-violet/10 px-4 py-3">
             <img src={logo} alt="" className="h-8 w-8 object-contain" />
             <div>
@@ -94,7 +107,7 @@ export default function ChatWidget() {
             </div>
           </div>
 
-          <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+          <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 py-4">
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div
@@ -136,11 +149,6 @@ export default function ChatWidget() {
               <Send size={15} />
             </button>
           </div>
-          {error && (
-            <p className="px-4 pb-2 text-[11px] text-white/30">
-              {lang === "fr" ? "Astuce : ce chat nécessite un déploiement Vercel + clé API." : "Tip: this chat requires a Vercel deployment + API key."}
-            </p>
-          )}
         </div>
       )}
     </>
