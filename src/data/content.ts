@@ -50,7 +50,7 @@ export const projects: Project[] = [
     tags: ["React", "TypeScript", "Tailwind CSS", "Vercel"],
     gradient: "from-fuchsia-600/20 via-slate-900/40 to-black",
     link: "https://freud-joslin-bossou-porfolio.vercel.app",
-    github: "https://github.com/Freudbenvic/portfolio-fb",
+    github: "https://github.com/Freudbenvic/Portfolio-v2",
   },
   {
     title: "Portfolio (v1)",
@@ -59,6 +59,7 @@ export const projects: Project[] = [
     tags: ["HTML", "CSS", "JavaScript", "React"],
     gradient: "from-cyan-600/20 via-slate-900/40 to-black",
     image: "portfolio-v1",
+    link: "https://portfolio-sv6g.vercel.app",
     github: "https://github.com/Freudbenvic/Portfolio",
   },
 ];

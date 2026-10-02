@@ -9,10 +9,10 @@ Portfolio personnel de développeur full-stack : une seule page, thème sombre, 
 - **Accueil** avec les rôles qui défilent
 - **À propos**, **Compétences** (grille filtrable par catégorie) et **Parcours** (études et expérience)
 - **Services** en cartes numérotées
-- **Projets** en carrousel : on fait défiler à la souris, au doigt ou au trackpad
+- **Projets** en carrousel infini : on fait défiler à la souris, au doigt ou au trackpad, et après le dernier projet on revient au premier
 - **Contact** et téléchargement du CV
 - **Chat assistant** branché sur le contenu du site
-- **Installable** sur téléphone et ordinateur (PWA)
+- **Installable** sur téléphone et ordinateur (PWA), avec un bouton « Installer l'application » dans le menu mobile et le pied de page, sans fenêtre qui gêne la lecture
 - **Sélecteur FR / EN** replié sur le bord droit
 
 <br>

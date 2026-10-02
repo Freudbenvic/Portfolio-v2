@@ -1,5 +1,7 @@
 import logoDark from "../assets/logo.png";
+import { Smartphone } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
+import { useInstallPrompt } from "../hooks/useInstallPrompt";
 import { profile } from "../data/content";
 
 function GithubIcon() {
@@ -37,6 +39,7 @@ function FacebookIcon() {
 
 export default function Footer() {
   const { t } = useLanguage();
+  const { canInstall, install } = useInstallPrompt();
   const whatsappNumber = profile.phone.replace(/[^\d]/g, "");
 
   return (
@@ -45,6 +48,15 @@ export default function Footer() {
         <div className="flex items-center gap-3">
           <img src={logoDark} alt="Freud Bossou" className="h-7 w-7 object-contain" />
           <p className="text-xs text-white/40">© 2026 Freud Benvic. {t.footer.rights}</p>
+          {canInstall && (
+            <button
+              onClick={install}
+              className="flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1 text-xs text-white/60 transition-colors hover:border-violet/40 hover:text-violet-light"
+            >
+              <Smartphone size={13} />
+              {t.nav.install}
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-5 text-white/60">

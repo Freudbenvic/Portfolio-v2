@@ -4,19 +4,17 @@ import { ArrowUp } from "lucide-react";
 export default function BackToTop() {
   const [visible, setVisible] = useState(false);
 
+  // shown as soon as the page has been scrolled past the first half screen.
+  // Measured on every scroll (not on a section crossing) so jumps through the page can't make it miss.
   useEffect(() => {
-    const target = document.getElementById("apropos");
-    if (!target) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        // show once "À propos" starts entering the viewport (i.e. past the hero)
-        setVisible(entry.boundingClientRect.top < window.innerHeight);
-      },
-      { threshold: 0, rootMargin: "0px" }
-    );
-    observer.observe(target);
-    return () => observer.disconnect();
+    const update = () => setVisible(window.scrollY > window.innerHeight * 0.5);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
   }, []);
 
   return (

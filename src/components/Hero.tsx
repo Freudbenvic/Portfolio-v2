@@ -58,11 +58,6 @@ export default function Hero() {
 
       <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-16 px-6 md:grid-cols-2">
         <div className="order-2 animate-fade-up md:order-1" style={{ animationDelay: "0ms" }}>
-          <p className="mb-4 flex items-center gap-2 text-sm font-medium text-violet-light">
-            <span className="h-px w-6 bg-violet-light" />
-            {t.hero.badge}
-          </p>
-
           <h1 className="font-display text-5xl font-bold leading-[1.1] text-white sm:text-6xl">
             {t.hero.title1}
             <br />

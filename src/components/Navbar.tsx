@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
-import { Download, Menu, X } from "lucide-react";
+import { Download, Menu, Smartphone, X } from "lucide-react";
 import logo from "../assets/logo.png";
 import { useLanguage } from "../context/LanguageContext";
+import { useInstallPrompt } from "../hooks/useInstallPrompt";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("accueil");
   const [scrolled, setScrolled] = useState(false);
   const { lang, t } = useLanguage();
+  const { canInstall, install } = useInstallPrompt();
 
   const links = [
     { key: "accueil", label: t.nav.accueil, href: "#accueil" },
@@ -170,6 +172,20 @@ export default function Navbar() {
                 <Download size={15} />
               </a>
             </li>
+            {canInstall && (
+              <li>
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    install();
+                  }}
+                  className="flex items-center gap-2 text-white/80"
+                >
+                  {t.nav.install}
+                  <Smartphone size={15} />
+                </button>
+              </li>
+            )}
           </ul>
         </div>
       )}

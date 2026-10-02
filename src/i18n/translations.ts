@@ -8,9 +8,9 @@ interface TranslationShape {
     projets: string;
     contact: string;
     downloadCV: string;
+    install: string;
   };
   hero: {
-    badge: string;
     title1: string;
     titleHighlight: string;
     roleTagPrefix: string;
@@ -83,9 +83,9 @@ export const translations: Record<"fr" | "en", TranslationShape> = {
       projets: "Projets",
       contact: "Contact",
       downloadCV: "Télécharger CV",
+      install: "Installer l'application",
     },
     hero: {
-      badge: "Développeur Full-Stack",
       title1: "Freud",
       titleHighlight: "Joslin Bossou",
       roleTagPrefix: "Je suis",
@@ -156,9 +156,9 @@ export const translations: Record<"fr" | "en", TranslationShape> = {
       projets: "Projects",
       contact: "Contact",
       downloadCV: "Download CV",
+      install: "Install the app",
     },
     hero: {
-      badge: "Full-Stack Developer",
       title1: "Freud",
       titleHighlight: "Joslin Bossou",
       roleTagPrefix: "I am",

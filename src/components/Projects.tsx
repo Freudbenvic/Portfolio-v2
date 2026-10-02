@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ArrowRight, ArrowLeft, ExternalLink } from "lucide-react";
 import { projects } from "../data/content";
 import { useLanguage } from "../context/LanguageContext";
@@ -24,20 +24,33 @@ const imageMap: Record<string, string> = {
   "portfolio-v1": portfolioV1Img,
 };
 
+// The list is rendered 3 times in a row. The user always scrolls in the middle copy;
+// once the scroll settles on an outer copy we silently jump back by one full copy (identical content),
+// so the carousel loops forever in both directions.
+const COPIES = 3;
+const SETTLE_MS = 140;
+
 export default function Projects() {
   const { t } = useLanguage();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLElement | null)[]>([]);
-  const drag = useRef({ active: false, startX: 0, startScroll: 0, moved: false });
+  const absRef = useRef(0); // absolute index (0 .. 3*total-1) of the card in the center
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pressed = useRef(false); // finger or mouse currently holding the carousel
+  const drag = useRef({ startX: 0, startScroll: 0, moved: false });
   const [active, setActive] = useState(0);
+
   const total = projects.length;
+  const items = Array.from({ length: COPIES }, (_, c) =>
+    projects.map((project, i) => ({ project, i, c, key: `${c}-${i}` })),
+  ).flat();
 
   const step = () => {
     const [a, b] = cardRefs.current;
     return a && b ? b.offsetLeft - a.offsetLeft : 1;
   };
 
-  // coverflow look driven by the scroll position: the closer a card is to the center, the bigger and brighter it gets
+  // coverflow look driven by the scroll position
   const update = useCallback(() => {
     const el = scrollerRef.current;
     if (!el) return;
@@ -46,10 +59,14 @@ export default function Projects() {
     let nearest = 0;
     let best = Infinity;
 
-    cardRefs.current.forEach((card, i) => {
+    cardRefs.current.forEach((card, k) => {
       if (!card) return;
       const d = (card.offsetLeft + card.offsetWidth / 2 - center) / s;
       const abs = Math.min(Math.abs(d), 2);
+      if (abs >= 2 && Math.abs(d) > 3) {
+        card.style.opacity = "0";
+        return;
+      }
       const rotate = Math.max(-34, Math.min(34, -d * 22));
       card.style.transform = `perspective(1000px) rotateY(${rotate}deg) scale(${1 - abs * 0.1})`;
       card.style.opacity = String(Math.max(0.35, 1 - abs * 0.3));
@@ -57,11 +74,41 @@ export default function Projects() {
       card.dataset.active = abs < 0.5 ? "1" : "0";
       if (Math.abs(d) < best) {
         best = Math.abs(d);
-        nearest = i;
+        nearest = k;
       }
     });
-    setActive((prev) => (prev === nearest ? prev : nearest));
-  }, []);
+    absRef.current = nearest;
+    setActive((prev) => (prev === nearest % total ? prev : nearest % total));
+  }, [total]);
+
+  // once scrolling has stopped on an outer copy, jump back to the same card in the middle copy
+  const recenter = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el || pressed.current) return;
+    const s = step();
+    const idx = Math.round(el.scrollLeft / s);
+    if (idx >= total && idx < 2 * total) return;
+    const shift = idx < total ? total * s : -total * s;
+    el.style.scrollSnapType = "none";
+    el.scrollLeft += shift;
+    requestAnimationFrame(() => {
+      el.style.scrollSnapType = "";
+      update();
+    });
+  }, [total, update]);
+
+  const scheduleSettle = useCallback(() => {
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+    settleTimer.current = setTimeout(recenter, SETTLE_MS);
+  }, [recenter]);
+
+  // start on the first project of the middle copy
+  useLayoutEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.scrollLeft = total * step();
+    update();
+  }, [total, update]);
 
   useEffect(() => {
     const el = scrollerRef.current;
@@ -70,29 +117,55 @@ export default function Projects() {
     const onScroll = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(update);
+      scheduleSettle();
     };
-    update();
+    const onResize = () => {
+      el.scrollLeft = absRef.current * step();
+      update();
+    };
+    const onTouchStart = () => {
+      pressed.current = true;
+    };
+    const onTouchEnd = () => {
+      pressed.current = false;
+      scheduleSettle();
+    };
     el.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
+    el.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    window.addEventListener("resize", onResize);
     return () => {
       cancelAnimationFrame(raf);
+      if (settleTimer.current) clearTimeout(settleTimer.current);
       el.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchend", onTouchEnd);
+      el.removeEventListener("touchcancel", onTouchEnd);
+      window.removeEventListener("resize", onResize);
     };
-  }, [update]);
+  }, [update, scheduleSettle]);
 
-  const goTo = (i: number) => {
+  const goToAbs = (k: number) => {
     const el = scrollerRef.current;
     if (!el) return;
-    const clamped = Math.max(0, Math.min(total - 1, i));
+    const clamped = Math.max(0, Math.min(COPIES * total - 1, k));
     el.scrollTo({ left: clamped * step(), behavior: "smooth" });
+  };
+
+  // dots: go to the closest copy of that project
+  const goToProject = (real: number) => {
+    const cands = [real, real + total, real + 2 * total];
+    const best = cands.reduce((a, b) => (Math.abs(b - absRef.current) < Math.abs(a - absRef.current) ? b : a));
+    goToAbs(best);
   };
 
   // mouse drag (touch and trackpads already scroll natively)
   const onPointerDown = (e: React.PointerEvent) => {
     const el = scrollerRef.current;
     if (!el || e.pointerType !== "mouse" || e.button !== 0) return;
-    drag.current = { active: true, startX: e.clientX, startScroll: el.scrollLeft, moved: false };
+    drag.current = { startX: e.clientX, startScroll: el.scrollLeft, moved: false };
+    pressed.current = true;
 
     const onMove = (ev: PointerEvent) => {
       const dx = ev.clientX - drag.current.startX;
@@ -108,14 +181,14 @@ export default function Projects() {
     const onUp = () => {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
-      drag.current.active = false;
+      pressed.current = false;
       el.style.cursor = "";
       if (drag.current.moved) {
-        const target = Math.round(el.scrollLeft / step());
-        el.scrollTo({ left: Math.max(0, Math.min(total - 1, target)) * step(), behavior: "smooth" });
+        goToAbs(Math.round(el.scrollLeft / step()));
         setTimeout(() => (el.style.scrollSnapType = ""), 450);
         setTimeout(() => (drag.current.moved = false), 0);
       }
+      scheduleSettle();
     };
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
@@ -161,23 +234,24 @@ export default function Projects() {
             }
           }}
           onKeyDown={(e) => {
-            if (e.key === "ArrowRight") goTo(active + 1);
-            if (e.key === "ArrowLeft") goTo(active - 1);
+            if (e.key === "ArrowRight") goToAbs(absRef.current + 1);
+            if (e.key === "ArrowLeft") goToAbs(absRef.current - 1);
           }}
-          className="relative mt-8 flex cursor-grab snap-x snap-mandatory gap-4 overflow-x-auto px-[calc(50%-min(39vw,170px))] py-8 outline-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="relative mt-8 flex cursor-grab [scroll-behavior:auto] snap-x snap-mandatory gap-4 overflow-x-auto px-[calc(50%-min(39vw,170px))] py-8 outline-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
-          {projects.map((project, i) => {
+          {items.map(({ project, i, c, key }, k) => {
             const img = project.image ? imageMap[project.image] : undefined;
-            const isActive = i === active;
+            const isActive = c === 1 && i === active;
 
             return (
               <article
-                key={project.title}
+                key={key}
                 ref={(node) => {
-                  cardRefs.current[i] = node;
+                  cardRefs.current[k] = node;
                 }}
-                data-active={i === 0 ? "1" : "0"}
-                onClick={() => !isActive && goTo(i)}
+                aria-hidden={c !== 1}
+                data-active="0"
+                onClick={() => absRef.current !== k && goToAbs(k)}
                 className="flex h-[440px] w-[min(78vw,340px)] flex-shrink-0 snap-center select-none flex-col overflow-hidden rounded-2xl border border-white/10 bg-surface shadow-xl shadow-black/30 will-change-transform data-[active=1]:border-violet/40 data-[active=1]:shadow-2xl data-[active=1]:shadow-violet/20"
               >
                 <div className="relative h-44 flex-shrink-0 overflow-hidden">
@@ -244,7 +318,7 @@ export default function Projects() {
 
         <div className="mt-2 flex items-center justify-center gap-5">
           <button
-            onClick={() => goTo(active - 1)}
+            onClick={() => goToAbs(absRef.current - 1)}
             aria-label="Projet précédent"
             className="hidden h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/50 transition-all hover:border-violet/40 hover:text-violet-light sm:flex"
           >
@@ -254,7 +328,7 @@ export default function Projects() {
             {projects.map((p, i) => (
               <button
                 key={p.title}
-                onClick={() => goTo(i)}
+                onClick={() => goToProject(i)}
                 aria-label={`Aller au projet ${i + 1}`}
                 className={`h-1.5 rounded-full transition-all ${
                   i === active ? "w-6 bg-violet-light" : "w-1.5 bg-white/20 hover:bg-white/40"
@@ -263,7 +337,7 @@ export default function Projects() {
             ))}
           </div>
           <button
-            onClick={() => goTo(active + 1)}
+            onClick={() => goToAbs(absRef.current + 1)}
             aria-label="Projet suivant"
             className="hidden h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/50 transition-all hover:border-violet/40 hover:text-violet-light sm:flex"
           >

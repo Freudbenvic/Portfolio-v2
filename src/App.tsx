@@ -9,7 +9,6 @@ import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import BackToTop from "./components/BackToTop";
 import LoadingScreen from "./components/LoadingScreen";
-import InstallPrompt from "./components/InstallPrompt";
 import ChatWidget from "./components/ChatWidget";
 import LanguageSwitch from "./components/LanguageSwitch";
 import { LanguageProvider } from "./context/LanguageContext";
@@ -32,7 +31,6 @@ export default function App() {
         </main>
         <Footer />
         <BackToTop />
-        <InstallPrompt />
         <ChatWidget />
       </div>
     </LanguageProvider>
