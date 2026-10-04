@@ -6,6 +6,7 @@ export interface Project {
   link?: string;
   github?: string;
   image?: string;
+  confidential?: boolean;
 }
 
 export const projects: Project[] = [
@@ -25,7 +26,7 @@ export const projects: Project[] = [
     tags: ["React", "Django", "PostgreSQL"],
     gradient: "from-violet-600/30 via-violet-900/20 to-black",
     image: "gerac",
-    github: "https://github.com/Freudbenvic/GERAC-Frontend",
+    confidential: true,
   },
   {
     title: "Dax - Bot Telegram Intelligent",
@@ -49,6 +50,7 @@ export const projects: Project[] = [
       "Interface responsive mettant en avant compétences et projets, déployée en production.",
     tags: ["React", "TypeScript", "Tailwind CSS", "Vercel"],
     gradient: "from-fuchsia-600/20 via-slate-900/40 to-black",
+    image: "portfolio",
     link: "https://freud-joslin-bossou-porfolio.vercel.app",
     github: "https://github.com/Freudbenvic/Portfolio-v2",
   },
@@ -83,6 +85,7 @@ export const skills: Skill[] = [
   { name: "Vercel", color: "#ffffff", category: "devops" },
   { name: "VS Code", color: "#007ACC", category: "devops" },
   { name: "Figma", color: "#A259FF", category: "design" },
+  { name: "Canva", color: "#00C4CC", category: "design" },
   { name: "StarUML", color: "#F59E0B", category: "modeling" },
 ];
 

@@ -58,6 +58,7 @@ interface TranslationShape {
     eyebrow: string;
     title: string;
     viewAll: string;
+    confidential: string;
   };
   contact: {
     eyebrow: string;
@@ -133,6 +134,7 @@ export const translations: Record<"fr" | "en", TranslationShape> = {
       eyebrow: "Projets",
       title: "Mes réalisations",
       viewAll: "Voir tous les projets",
+      confidential: "Projet confidentiel",
     },
     contact: {
       eyebrow: "Contact",
@@ -206,6 +208,7 @@ export const translations: Record<"fr" | "en", TranslationShape> = {
       eyebrow: "Projects",
       title: "My work",
       viewAll: "See all projects",
+      confidential: "Confidential project",
     },
     contact: {
       eyebrow: "Contact",

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ArrowRight, ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowRight, ArrowLeft, ExternalLink, Lock } from "lucide-react";
 import { projects } from "../data/content";
 import { useLanguage } from "../context/LanguageContext";
 import Reveal from "./Reveal";
@@ -8,6 +8,7 @@ import easyworkImg from "../assets/projects/easywork.jpg";
 import geracImg from "../assets/projects/gerac.jpg";
 import daxImg from "../assets/projects/dax.jpg";
 import portfolioV1Img from "../assets/projects/portfolio-v1.jpg";
+import portfolioImg from "../assets/projects/portfolio.jpg";
 
 function GithubIcon() {
   return (
@@ -22,6 +23,7 @@ const imageMap: Record<string, string> = {
   gerac: geracImg,
   dax: daxImg,
   "portfolio-v1": portfolioV1Img,
+  portfolio: portfolioImg,
 };
 
 // The list is rendered 3 times in a row. The user always scrolls in the middle copy;
@@ -301,6 +303,12 @@ export default function Projects() {
                   </div>
                   <p className="mt-2.5 line-clamp-4 text-sm leading-relaxed text-white/55">{project.description}</p>
                   <div className="mt-auto flex flex-wrap gap-1.5 border-t border-white/10 pt-4">
+                    {project.confidential && (
+                      <span className="flex items-center gap-1 rounded-md border border-violet/30 bg-violet/10 px-2 py-0.5 text-[11px] text-violet-light">
+                        <Lock size={10} />
+                        {t.projects.confidential}
+                      </span>
+                    )}
                     {project.tags.map((tag) => (
                       <span
                         key={tag}

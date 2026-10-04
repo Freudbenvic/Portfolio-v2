@@ -18,6 +18,7 @@ import postgresqlIcon from "../assets/icons/postgresql.svg";
 import gitIcon from "../assets/icons/git.svg";
 import githubIcon from "../assets/icons/github-dark.svg";
 import figmaIcon from "../assets/icons/figma.svg";
+import canvaIcon from "../assets/icons/canva.svg";
 import vercelIcon from "../assets/icons/vercel-dark.svg";
 
 // each skill maps to one or more real brand icon files (shown side by side for combined skills)
@@ -33,6 +34,7 @@ const iconMap: Record<string, string[]> = {
   "Git / GitHub": [gitIcon, githubIcon],
   "Vercel": [vercelIcon],
   "Figma": [figmaIcon],
+  "Canva": [canvaIcon],
 };
 
 const categoryOrder: Skill["category"][] = ["frontend", "backend", "database", "devops", "design", "modeling"];

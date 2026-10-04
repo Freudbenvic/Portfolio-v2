@@ -93,7 +93,10 @@ Pour rendre le chat fiable avec ce modèle changeant, la fonction :
 
 - réessaie jusqu'à 3 fois si OpenRouter est occupé ou si le modèle répond à côté (par exemple un simple « safe » venu d'un modèle de modération) ;
 - retire le markdown et les tirets cadratins des réponses, car le chat affiche du texte simple ;
+- écarte toute réponse qui recopierait ses propres consignes ;
 - limite l'historique envoyé (10 derniers messages) pour rester rapide.
+
+**Ses consignes** (périmètre, ton, langue, confidentialité, refus des sujets hors portfolio) se trouvent dans la fonction `buildSystemPrompt` de `api/chat.ts`. C'est là qu'il faut les ajuster si le chat répond mal.
 
 Elle a besoin de clés et de réglages, à enregistrer dans Vercel :
 
