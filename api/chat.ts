@@ -25,10 +25,10 @@ async function notifyByEmail(userMessage: string, reply: string) {
       body: JSON.stringify({
         from: "Portfolio Chat <onboarding@resend.dev>",
         to: [profile.email],
-        subject: "Nouveau message sur le chat de ton portfolio",
+        subject: "Nouvelle conversation sur le chat de ton portfolio",
         html: `
           <div style="font-family: sans-serif; max-width: 480px;">
-            <p><strong>Un visiteur a écrit :</strong></p>
+            <p><strong>Un visiteur a ouvert la conversation :</strong></p>
             <p style="background:#f4f4f6;padding:12px;border-radius:8px;">${escapeHtml(userMessage)}</p>
             <p><strong>Réponse envoyée par l'assistant :</strong></p>
             <p style="background:#efeaff;padding:12px;border-radius:8px;">${escapeHtml(reply)}</p>
@@ -108,6 +108,38 @@ STYLE :
 - Longueur : 2 à 4 phrases, sauf si on te demande un détail précis.
 - Texte simple : ni gras, ni titres, ni listes à puces. N'utilise jamais de tiret cadratin (le long tiret) : préfère une virgule, deux-points ou un tiret simple.
 - Liens : ne donne que ceux présents dans les informations ci-dessus.`;
+}
+
+// ---- limits -------------------------------------------------------------
+const MAX_USER_CHARS = 500; // a visitor question is short
+const MAX_ASSISTANT_CHARS = 1000;
+const RATE_LIMIT = 30; // requests per IP...
+const RATE_WINDOW_MS = 10 * 60 * 1000; // ...every 10 minutes (generous: many people share one IP on mobile networks)
+
+// Best effort only: each serverless instance has its own memory, so this stops bursts, not a determined attacker.
+const hits = new Map<string, number[]>();
+
+function clientIp(req: VercelRequest): string {
+  const forwarded = req.headers?.["x-forwarded-for"];
+  const raw = Array.isArray(forwarded) ? forwarded[0] : forwarded;
+  return (raw?.split(",")[0] ?? (req.headers?.["x-real-ip"] as string | undefined) ?? "unknown").trim();
+}
+
+function isRateLimited(ip: string, now = Date.now()): boolean {
+  const recent = (hits.get(ip) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
+  if (recent.length >= RATE_LIMIT) {
+    hits.set(ip, recent);
+    return true;
+  }
+  recent.push(now);
+  hits.set(ip, recent);
+
+  if (hits.size > 500) {
+    for (const [key, times] of hits) {
+      if (times.every((t) => now - t >= RATE_WINDOW_MS)) hits.delete(key);
+    }
+  }
+  return false;
 }
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
@@ -202,6 +234,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
+  if (isRateLimited(clientIp(req))) {
+    res.setHeader("Retry-After", String(Math.ceil(RATE_WINDOW_MS / 1000)));
+    res.status(429).json({ error: "Too many requests." });
+    return;
+  }
+
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     res.status(500).json({ error: "Chat is not configured (missing API key)." });
@@ -213,7 +251,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const messages = (Array.isArray(body?.messages) ? body.messages : [])
       .filter((m) => (m?.role === "user" || m?.role === "assistant") && typeof m.content === "string")
       .slice(-10)
-      .map((m) => ({ role: m.role, content: m.content.slice(0, 1000) }));
+      .map((m) => ({ role: m.role, content: m.content.slice(0, m.role === "user" ? MAX_USER_CHARS : MAX_ASSISTANT_CHARS) }));
 
     if (messages.length === 0) {
       res.status(400).json({ error: "Missing messages." });
@@ -226,8 +264,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    const lastUserMessage = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
-    await notifyByEmail(lastUserMessage, reply);
+    // one notification per visit: only when this is the visitor's very first question
+    const questions = messages.filter((m) => m.role === "user");
+    if (questions.length === 1) await notifyByEmail(questions[0].content, reply);
 
     res.status(200).json({ reply });
   } catch (err) {

@@ -98,6 +98,20 @@ Pour rendre le chat fiable avec ce modèle changeant, la fonction :
 
 **Ses consignes** (périmètre, ton, langue, confidentialité, refus des sujets hors portfolio) se trouvent dans la fonction `buildSystemPrompt` de `api/chat.ts`. C'est là qu'il faut les ajuster si le chat répond mal.
 
+**La commande `/aide`** (ou `/help`) aide un visiteur qui ne sait pas par où commencer. Un bouton cliquable est affiché sous le message d'accueil, et la commande peut aussi être tapée. Elle liste ce que l'assistant sait faire et propose des questions toutes prêtes sur lesquelles cliquer. Elle est traitée directement dans le navigateur : elle ne coûte rien, ne compte pas dans les 15 questions et n'est jamais envoyée au serveur. Le texte et les suggestions se modifient dans `ChatWidget.tsx`.
+
+**Les limites du chat** protègent ton quota gratuit et évitent les abus :
+
+| Limite | Valeur | Où la changer |
+| --- | --- | --- |
+| Taille d'une question | 300 caractères (500 côté serveur) | `MAX_INPUT` dans `ChatWidget.tsx`, `MAX_USER_CHARS` dans `api/chat.ts` |
+| Questions par visite | 15, puis le chat propose ton email et ton WhatsApp | `MAX_QUESTIONS` dans `ChatWidget.tsx` |
+| Délai entre deux messages | 3 secondes | `COOLDOWN_MS` dans `ChatWidget.tsx` |
+| Requêtes par adresse IP | 30 toutes les 10 minutes | `RATE_LIMIT` et `RATE_WINDOW_MS` dans `api/chat.ts` |
+| Emails de notification | 1 par visite, à la première question | `api/chat.ts` |
+
+La limite par adresse IP est volontairement large, car beaucoup de gens partagent la même adresse sur les réseaux mobiles. Elle freine les rafales mais ne remplace pas une vraie protection : si un jour tu subis des abus, il faudra un petit compteur partagé (une base de données gratuite). Quand une limite est atteinte, ou que les modèles gratuits sont saturés, le visiteur voit des boutons Email et WhatsApp au lieu d'une simple excuse.
+
 Elle a besoin de clés et de réglages, à enregistrer dans Vercel :
 
 | Variable | Obligatoire | Rôle |
