@@ -1,6 +1,7 @@
 import { ArrowRight, MessageCircle } from "lucide-react";
 import { profile } from "../data/content";
-import portrait from "../assets/portrait-full.png";
+import portrait from "../assets/portrait-full.webp";
+import portraitSmall from "../assets/portrait-full-480.webp";
 import { useLanguage } from "../context/LanguageContext";
 import RoleRotator from "./RoleRotator";
 
@@ -110,6 +111,12 @@ export default function Hero() {
           <div className="pointer-events-none absolute inset-0 rounded-full bg-violet/25 blur-[100px]" />
           <img
             src={portrait}
+            srcSet={`${portraitSmall} 480w, ${portrait} 733w`}
+            sizes="(min-width: 640px) 347px, 293px"
+            width={733}
+            height={1100}
+            fetchPriority="high"
+            decoding="async"
             alt={profile.name}
             className="relative z-10 h-[440px] w-auto object-contain object-bottom sm:h-[520px]"
           />

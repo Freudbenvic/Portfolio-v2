@@ -38,7 +38,9 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png,jpg,jpeg,svg,pdf}'],
+        // precache the app itself, not the CV, the social share image or unused files
+        globPatterns: ['**/*.{js,css,html,svg,webp,woff2}', 'favicon.png', 'apple-touch-icon.png', 'pwa-*.png'],
+        globIgnores: ['**/og-image*', '**/Logo_Portfolio.png', '**/*.pdf'],
         // never let the service worker answer API calls with index.html
         navigateFallbackDenylist: [/^\/api\//],
       },

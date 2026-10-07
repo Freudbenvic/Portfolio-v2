@@ -2,7 +2,7 @@ import { ArrowRight } from "lucide-react";
 import { profile } from "../data/content";
 import { useLanguage } from "../context/LanguageContext";
 import Reveal from "./Reveal";
-import editorialPhoto from "../assets/about/freud-editorial.jpg";
+import editorialPhoto from "../assets/about/freud-editorial.webp";
 
 export default function About() {
   const { t } = useLanguage();
@@ -41,6 +41,8 @@ export default function About() {
             <div className="mx-auto h-64 w-52 overflow-hidden rounded-2xl border border-white/10 bg-surface shadow-xl shadow-violet/10 sm:h-72 sm:w-60 lg:mx-0 lg:h-full lg:w-full">
               <img
                 src={editorialPhoto}
+                loading="lazy"
+                decoding="async"
                 alt={profile.name}
                 className="h-full w-full object-cover grayscale"
               />

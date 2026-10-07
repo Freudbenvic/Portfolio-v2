@@ -1,4 +1,4 @@
-import logoDark from "../assets/logo.png";
+import logoDark from "../assets/logo.webp";
 import { Smartphone } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { useInstallPrompt } from "../hooks/useInstallPrompt";
@@ -46,7 +46,7 @@ export default function Footer() {
     <footer className="border-t border-white/5 py-8">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6">
         <div className="flex items-center gap-3">
-          <img src={logoDark} alt="Freud Bossou" className="h-7 w-7 object-contain" />
+          <img src={logoDark} alt="Freud Bossou" loading="lazy" decoding="async" className="h-7 w-7 object-contain" />
           <p className="text-xs text-white/40">© 2026 Freud Benvic. {t.footer.rights}</p>
           {canInstall && (
             <button

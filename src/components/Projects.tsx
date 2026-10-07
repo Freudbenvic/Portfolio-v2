@@ -4,11 +4,11 @@ import { projects } from "../data/content";
 import { useLanguage } from "../context/LanguageContext";
 import Reveal from "./Reveal";
 
-import easyworkImg from "../assets/projects/easywork.jpg";
-import geracImg from "../assets/projects/gerac.jpg";
-import daxImg from "../assets/projects/dax.jpg";
-import portfolioV1Img from "../assets/projects/portfolio-v1.jpg";
-import portfolioImg from "../assets/projects/portfolio.jpg";
+import easyworkImg from "../assets/projects/easywork.webp";
+import geracImg from "../assets/projects/gerac.webp";
+import daxImg from "../assets/projects/dax.webp";
+import portfolioV1Img from "../assets/projects/portfolio-v1.webp";
+import portfolioImg from "../assets/projects/portfolio.webp";
 
 function GithubIcon() {
   return (
@@ -258,7 +258,7 @@ export default function Projects() {
               >
                 <div className="relative h-44 flex-shrink-0 overflow-hidden">
                   {img ? (
-                    <img src={img} alt={project.title} draggable={false} className="h-full w-full object-cover" />
+                    <img src={img} alt={project.title} draggable={false} loading="lazy" decoding="async" className="h-full w-full object-cover" />
                   ) : (
                     <div className={`flex h-full items-center justify-center bg-gradient-to-br ${project.gradient}`}>
                       <span className="px-4 text-center text-xl font-bold text-white/25">{project.title}</span>

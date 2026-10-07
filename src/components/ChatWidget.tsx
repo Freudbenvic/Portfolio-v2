@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Mail, MessageCircle, Sparkles, X, Send } from "lucide-react";
-import logo from "../assets/logo.png";
+import logo from "../assets/logo.webp";
 import { useLanguage } from "../context/LanguageContext";
 import { profile } from "../data/content";
 

@@ -24,11 +24,11 @@ html, body {
 body {
   background-color: #0a0a0f;
   color: #f4f4f6;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Inter Variable', 'Inter', system-ui, sans-serif;
 }
 
 h1, h2, h3, h4, .font-display {
-  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  font-family: 'Space Grotesk Variable', 'Space Grotesk', 'Inter Variable', system-ui, sans-serif;
 }
 
 ::selection {

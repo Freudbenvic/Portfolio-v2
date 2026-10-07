@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Download, Menu, Smartphone, X } from "lucide-react";
-import logo from "../assets/logo.png";
+import logo from "../assets/logo.webp";
 import { useLanguage } from "../context/LanguageContext";
 import { useInstallPrompt } from "../hooks/useInstallPrompt";
 

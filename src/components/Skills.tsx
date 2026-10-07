@@ -45,7 +45,7 @@ function SkillIcon({ name }: { name: string }) {
     return (
       <>
         {icons.map((src, idx) => (
-          <img key={idx} src={src} alt="" className="h-10 w-10 object-contain" />
+          <img key={idx} src={src} alt="" loading="lazy" decoding="async" className="h-10 w-10 object-contain" />
         ))}
       </>
     );

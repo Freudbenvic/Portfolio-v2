@@ -152,6 +152,27 @@ Chaque `git push` sur la branche principale redéploie ensuite le site automatiq
 
 <br>
 
+## Performance
+
+Le site est pensé pour les connexions mobiles lentes :
+
+- **Images en WebP**, redimensionnées à la taille réellement affichée (le portrait existe en deux tailles, le navigateur choisit la bonne).
+- **Chargement différé** des images situées plus bas dans la page.
+- **Polices hébergées avec le site** (Inter et Space Grotesk, via `@fontsource-variable`), sans passer par Google Fonts.
+- **Précache léger** : le service worker ne télécharge en arrière-plan que l'essentiel, pas le CV ni l'image de partage.
+
+Pour ajouter une image, convertis-la en WebP (largeur 800 px suffit pour une couverture de projet) avant de la placer dans `src/assets/`. Une image de plusieurs centaines de Ko pèse lourd sur un téléphone.
+
+<br>
+
+## Mesurer les visites
+
+Le site embarque le compteur de visites de Vercel (`@vercel/analytics`, composant `<Analytics />` dans `src/App.tsx`). Il est anonyme et ne compte rien en local.
+
+Pour l'activer : dans Vercel, ouvre ton projet, onglet **Analytics**, et active-le. Après le prochain déploiement, les visites apparaissent dans cet onglet : nombre de visiteurs, pages vues, pays, appareils et sites d'origine (par exemple Facebook ou WhatsApp). Les intitulés peuvent varier un peu d'une version de Vercel à l'autre, et l'offre gratuite a une limite mensuelle à vérifier chez eux.
+
+<br>
+
 ## Design
 
 - Thème sombre uniquement : fond `#0a0a0f`, accent violet `#7c5cff`

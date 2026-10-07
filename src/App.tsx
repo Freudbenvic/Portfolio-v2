@@ -11,6 +11,7 @@ import BackToTop from "./components/BackToTop";
 import LoadingScreen from "./components/LoadingScreen";
 import ChatWidget from "./components/ChatWidget";
 import LanguageSwitch from "./components/LanguageSwitch";
+import { Analytics } from "@vercel/analytics/react";
 import { LanguageProvider } from "./context/LanguageContext";
 
 export default function App() {
@@ -33,6 +34,8 @@ export default function App() {
         <BackToTop />
         <ChatWidget />
       </div>
+      {/* anonymous visit counter, active once Analytics is enabled in the Vercel project */}
+      <Analytics />
     </LanguageProvider>
   );
 }
